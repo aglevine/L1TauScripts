@@ -20,7 +20,8 @@ L1_CALIB_FACTOR = 1.0
 L1G_CALIB_FACTOR = 1.0
 #ZEROBIAS_RATE=15000000.00
 ZEROBIAS_RATE = 5623.0*2590.0 #frequency X bunches
-saveWhere = 'March25LutTests/Plots/'+str(name)+str(l1ptVal)
+#saveWhere = 'March25LutTests/Plots/'+str(name)+str(l1ptVal)
+saveWhere = 'RCTV2CalibNtuples_FullStatsApril28/Plots/'+str(name)+str(l1ptVal)
 
 #rate plot
 rateLine = True # line at recoPtVal
