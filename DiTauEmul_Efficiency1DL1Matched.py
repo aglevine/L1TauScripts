@@ -13,10 +13,16 @@ import array
 LIso=3
 LSB=50
 recoPtVal=20
-doOldCmp=True
+doOldCmp=False
 l1PtVal=float(argv[1])
 eff_ntuple_str=argv[2]
 saveStr=argv[3]
+do2BiniEtaCut=False
+Longxaxis=False
+if (do2BiniEtaCut):
+        saveStr = saveStr+'_tightEtaCut'
+if (Longxaxis):
+	saveStr = saveStr+'_400GeV'
 drawLine=True
 #ISOTHRESHOLD=0.15a
 ISOTHRESHOLD = 0.1
@@ -29,6 +35,7 @@ ZEROBIAS_RATE=11246.0*2590.0 #frequency X bunches
 #saveWhere = 'March25LutTests/Plots/OldCalibOldLutPoint1Iso_'
 #saveDir = 'March25LutTests/Plots/'
 saveDir = 'RCTV2CalibNtuples_FullStatsApril28/Plots/'
+#saveDir = 'RCTV2CalibNtuples_LUTFileTest/Plots/'
 saveWhere = saveDir+saveStr
 
 name = 'l1Pt'+str(l1PtVal)
@@ -45,7 +52,8 @@ name = 'l1Pt'+str(l1PtVal)
 #eff_iso_ntuple_str = "EmulatorTestingNov/tau_emul_effDoublingNoFixIsoDec6.root"
 #eff_ntuple_str = "tau_emul_effFeb17RlxNoTauVetoNewCalib.root"
 #effOld_ntuple_str ="March25LutTests/tau_emul_effMarch27OldCalibOldLUTIsoPoint1.root"
-effOld_ntuple_str ="March25LutTests/tau_emul_effMarch30NewCalibNewLUTIsoPoint15.root"
+#effOld_ntuple_str ="March25LutTests/tau_emul_effMarch30NewCalibNewLUTIsoPoint15.root"
+effOld_ntuple_str = "RCTV2CalibNtuples_LUTFileTest/tau_emul_effRCTV2CalibDefaultIso15LUTFileTest.root"
 eff_rlx_veto_ntuple_str = "tau_emul_effFeb17RlxTauVetoNewCalib.root"
 #eff_iso_ntuple_str = "tau_emul_effFeb17IsoTauVetoNewCalib.root"
 eff_iso_ntuple_str = "tau_emul_effMarch10IsoTauVetoNewCalibPoint15.root"
@@ -78,6 +86,9 @@ store = ROOT.TFile(saveWhere+'.root','RECREATE')
 #########
 # STYLE #
 #########
+
+ROOT.gROOT.LoadMacro("tdrstyle.C")
+ROOT.setTDRStyle()
 ROOT.gROOT.SetStyle("Plain")
 #ROOT.gROOT.SetBatch(True)
 ROOT.gStyle.SetOptStat(0)
@@ -105,6 +116,7 @@ colorCI=ROOT.EColor.kRed
 markerCI=24
 variable = "pt[1]"
 canvas = ROOT.TCanvas("asdf", "adsf", 800, 800)
+canvas.SetGrid()
 
 def make_plot(tree, variable, selection, binning, xaxis='', title='',calFactor=1):
  ''' Plot a variable using draw and return the histogram '''
@@ -144,6 +156,8 @@ def make_plot(tree, variable, selection, binning, xaxis='', title='',calFactor=1
 ######################################################################
 def make_l1_efficiency(denom, num,color=ROOT.EColor.kBlue,marker=20):
  ''' Make an efficiency graph '''
+ num.Sumw2()
+ denom.Sumw2()
  eff = ROOT.TGraphAsymmErrors(num, denom)
  eff.SetMarkerStyle(marker)
  eff.SetMarkerColor(color)
@@ -211,8 +225,10 @@ Returns a (L1, L1G) tuple of TGraphAsymmErrors
  )
 
  #denom_NoDoubling_rlx = make_plot(ntuple_NoDoubling, variable, cutD_rlx, binning)
- 
- frame = ROOT.TH1F('frame','frame',10,0,100)
+ if (Longxaxis):
+ 	frame = ROOT.TH1F('frame','frame',10,0,400)
+ else:
+ 	frame = ROOT.TH1F('frame','frame',10,0,100)
  canvas.SetLogy(setLOG)
  frame.Draw("")
  frame.SetTitle('')
@@ -232,13 +248,16 @@ Returns a (L1, L1G) tuple of TGraphAsymmErrors
 	frame.GetYaxis().SetTitle('pt[0]')
  elif variable is 'Min(pt[1],pt[0])': frame.GetXaxis().SetTitle("Min(P_{T}1, P_{T}2)")
  else: frame.GetXaxis().SetTitle(variable)
- frame.GetXaxis().SetRangeUser(0,100)
+ if Longxaxis==True:
+ 	frame.GetXaxis().SetRangeUser(0,400)
+ else:
+	frame.GetXaxis().SetRangeUser(0,100)
  #tex.DrawLatex(0.1,0.91,'Tau '+variable+' Efficiency')
  #tex.SetTextSize(0.03)
  #tex.DrawLatex(0.1,0.87,'CMS Preliminary')
  #tex.SetTextSize(0.07)
  legend = ROOT.TLegend(0.63,0.15,0.95,0.45,'','brNDC')
- legend.SetTextSize(0.023)
+ legend.SetTextSize(0.033)
  legend.SetFillColor(0)
  legend.SetBorderSize(0)
  
@@ -260,6 +279,24 @@ Returns a (L1, L1G) tuple of TGraphAsymmErrors
  '	L1: Rlx, 7 GeV Seed',legend, ROOT.EColor.kGreen+3,25)
  	_L1_iso_Old=effi_histo(ntupleOld_iso,variable,cut_L1_rlxOld,binning,denomOld_rlx,
  	'L1: Rlx, 7 GeV Seed',legend, ROOT.EColor.kBlue+2,25)
+ L1RlxCurve=_L1_rlx.Clone()
+ L1IsoCurve=_L1_iso.Clone()
+ 
+ formula = '[0]+[1]*x'
+ Poly1=ROOT.TFormula("adf",formula)
+ 
+ L1RlxFit = ROOT.TF1("adsf","tanh([0]*x+[1])+[2]",20,100)
+ L1IsoFit = ROOT.TF1("asdf","tanh([0]*x+[1])+[2]",20,100)
+
+ L1RlxCurve.Fit(L1RlxFit,"R")
+ L1IsoCurve.Fit(L1IsoFit,"R")
+
+ L1RlxFit.SetLineColor(ROOT.EColor.kGreen+3)
+ L1IsoFit.SetLineColor(ROOT.EColor.kBlue)
+ 
+ L1RlxFit.Draw("lsames")
+ L1IsoFit.Draw("lsames")
+ 
  print "l1 iso done"
  #_L1_rlx_NoDoubling=effi_histo(ntuple_NoDoubling,variable,cut_L1_rlx,binning,denom_NoDoubling_rlx,
  #'L1: Rlx No Doubling',legend, ROOT.EColor.kMagenta+3,25)
@@ -292,7 +329,10 @@ Returns a (L1, L1G) tuple of TGraphAsymmErrors
 ####################
 #binPt = [10,40,80] #l120
 #xBins = array.array('d',[20,25,30,35,40,45,50,55,60,80,100,130,200])
-xBins = array.array('d',[20,25,30,35,40,45,50,55,60,80,100])
+if Longxaxis:
+	xBins = array.array('d',[20,25,30,35,40,45,50,55,60,80,120,200,300,400])
+else:
+	xBins = array.array('d',[20,25,30,35,40,45,50,55,60,80,100])
 binPt = [20,0,100]
 binVert=[10,0,35]
 binJetPt=[40,0,70]
@@ -312,7 +352,10 @@ bin2DPt = [10,0,100,10,0,100]
 # drawL1Rlx_=False
 # legExtra='',
 # setLOG=False
-
+if (do2BiniEtaCut):
+	extraCutStr='&&eta[0]>-1.9&&eta[0]<1.9&&eta[1]>-1.9&&eta[1]<1.9&&L1Matchedeta[1]<1.9 &&L1Matchedeta[0]>-1.9&&L1Matchedeta[0]<1.9&&L1Matchedeta[1]>-1.9&&L1Matchedeta[1]<1.9'
+else:
+	extraCutStr='&&eta[0]>-2.5&&eta[0]<2.5&&eta[1]>-2.5&&eta[1]<2.5&&L1Matchedeta[1]<2.5 &&L1Matchedeta[0]>-2.5&&L1Matchedeta[0]<2.5&&L1Matchedeta[1]>-2.5&&L1Matchedeta[1]<2.5'
 
 compare_efficiencies(
  "pt[1]",
@@ -327,9 +370,10 @@ compare_efficiencies(
  recoPtCut = '(pt[0] >= '+str(recoPtVal)+')&&(pt[1] >= '+str(recoPtVal)+')',
  #recoPtCut='1',
  l1PtCut='(L1Matchedpt[0] >= '+str(l1PtVal)+')&&(L1Matchedpt[1]>= '+str(l1PtVal)+')',
- l1PtCutOld='(L1Matchedpt[0] >= 44)&&(L1Matchedpt[1]>= 44)',
+ l1PtCutOld='(L1Matchedpt[0] >= 40)&&(L1Matchedpt[1]>= 40)',
  #l1PtCut='((L1Matchedpt[0] >='+ str(32/1.185)+'&&abs(L1Matchedeta[0])<0.9)||(L1Matchedpt[0] >='+ str(32/1.153)+'&&abs(L1Matchedeta[0])<1.4&&abs(L1Matchedeta[0])>=0.9)||(L1Matchedpt[0] >='+ str(32/1.081)+'&&abs(L1Matchedeta[0])<2.5&&abs(L1Matchedeta[0])>=1.4))&&((L1Matchedpt[1] >='+ str(32/1.185)+'&&abs(L1Matchedeta[1])<0.9)||(L1Matchedpt[1] >='+ str(36/1.153)+'&&abs(L1Matchedeta[1])<1.4&&abs(L1Matchedeta[1])>=0.9)||(L1Matchedpt[1] >='+ str(32/1.081)+'&&abs(L1Matchedeta[1])<2.5&&abs(L1Matchedeta[1])>=1.4))',
  #l1PtCut='((L1Matchedpt[0] >='+ str(36/1.131)+'&&abs(L1Matchedeta[0])<0.9)||(L1Matchedpt[0] >='+ str(36/1.061)+'&&abs(L1Matchedeta[0])<1.4&&abs(L1Matchedeta[0])>=0.9)||(L1Matchedpt[0] >='+ str(36/1.050)+'&&abs(L1Matchedeta[0])<2.5&&abs(L1Matchedeta[0])>=1.4))&&((L1Matchedpt[1] >='+ str(36/1.131)+'&&abs(L1Matchedeta[1])<0.9)||(L1Matchedpt[1] >='+ str(36/1.061)+'&&abs(L1Matchedeta[1])<1.4&&abs(L1Matchedeta[1])>=0.9)||(L1Matchedpt[1] >='+ str(36/1.050)+'&&abs(L1Matchedeta[1])<2.5&&abs(L1Matchedeta[1])>=1.4))',
- extraCut='&&eta[0]>-2.5&&eta[0]<2.5&&eta[1]>-2.5&&eta[1]<2.5&&L1Matchedeta[1]<2.5 &&L1Matchedeta[0]>-2.5&&L1Matchedeta[0]<2.5&&L1Matchedeta[1]>-2.5&&L1Matchedeta[1]<2.5',
+ extraCut=extraCutStr,
+ #extraCut='&&eta[0]>-2.5&&eta[0]<2.5&&eta[1]>-2.5&&eta[1]<2.5&&L1eta[1]<2.5 &&L1eta[0]>-2.5&&L1eta[0]<2.5&&L1eta[1]>-2.5&&L1eta[1]<2.5',
 )
 
