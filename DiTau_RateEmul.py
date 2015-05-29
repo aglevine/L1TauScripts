@@ -16,11 +16,15 @@ rate_ntuple_str=argv[2]
 name=argv[3]
 #name = "72XIsoTestNewCalibPoint15Iso_"
 recoPtVal=0
+do2BiniEtaCut=False
+if (do2BiniEtaCut):
+	name = name+'_tightEtaCut'
 L1_CALIB_FACTOR = 1.0
 L1G_CALIB_FACTOR = 1.0
 #ZEROBIAS_RATE=15000000.00
 ZEROBIAS_RATE = 5623.0*2590.0 #frequency X bunches
 #saveWhere = 'March25LutTests/Plots/'+str(name)+str(l1ptVal)
+#saveWhere = 'RCTV2CalibNtuples_LUTFileTest/Plots/'+str(name)+str(l1ptVal)
 saveWhere = 'RCTV2CalibNtuples_FullStatsApril28/Plots/'+str(name)+str(l1ptVal)
 
 #rate plot
@@ -89,6 +93,7 @@ tex.SetNDC(True)
 
 
 canvas = ROOT.TCanvas("asdf", "adsf", 800, 800)
+canvas.SetGrid()
 
 def make_plot(tree, variable, selection, binning, xaxis='', title='',calFactor=1):
  ''' Plot a variable using draw and return the histogram '''
@@ -337,11 +342,15 @@ def make_rate_plot(
  legend = ROOT.TLegend(0.4,0.6,0.89,0.89,'','brNDC')
  legend.SetFillColor(0)
  legend.SetBorderSize(0)
+ legend.SetTextSize(0.033)
  #legend.SetHeader("DiTau Rate")
 
 
  max_ntuple=1
- cut='(eta[0] > -2.5 && eta[0] < 2.5&&eta[1] > -2.5 && eta[1] < 2.5&&pt[0]>0&&pt[1]>0)'
+ if (do2BiniEtaCut):
+ 	cut='(eta[0] > -1.9 && eta[0] < 1.9&&eta[1] > -1.9 && eta[1] < 1.9&&pt[0]>0&&pt[1]>0)'
+ else:
+ 	cut='(eta[0] > -2.5 && eta[0] < 2.5&&eta[1] > -2.5 && eta[1] < 2.5&&pt[0]>0&&pt[1]>0)'
  h_L1_rlx,max_L1_rlx,vert_L1_rlx,hor_L1_rlx,rateValRlx = rate_histo(
    ntuple,cut,binning,L1G_CALIB_FACTOR,
    scale,ROOT.EColor.kGreen+3,20,legend,
@@ -372,7 +381,7 @@ def make_rate_plot(
  legend.Draw()
  latex = ROOT.TLatex()
  latex.SetNDC()
- latex.SetTextSize(0.03)
+ latex.SetTextSize(0.04)
  latex.SetTextAlign(31)
  latexStrRlx= "Rlx Rate :  %.2f kHz "%(rateValRlx/1000)
  #latexStrRlxVeto = "Rlx Rate (With Veto) :  %.2f kHz "%(rateValRlxVeto/1000)
