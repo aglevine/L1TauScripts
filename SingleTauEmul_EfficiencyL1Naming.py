@@ -14,7 +14,7 @@ LIso=3
 LSB=50
 recoPtVal=20
 drawLine=True
-L1Denom=True
+L1Denom=False
 doRlxVeto=False
 l1PtVal=float(argv[1])
 l1PtValLow = float(argv[2])
@@ -33,7 +33,7 @@ L1CalibFactor = float(argv[10])
 ZEROBIAS_RATE=5623.0*2590.0 #frequency X bunches
 #saveWhere = 'EmulatorTestingNov/BinnedTausEOBIB/ThirdPassSingleTauEffMatchFixThreshFixJan280Point1Iso'
 #saveWhere = 'EmulatorTestingNov/BinnedTausEOBIB/ResL1OnBottom'
-saveWhere = 'March25LutTests/Plots/SingleTauEffOldCalibOldLUT'
+saveWhere = 'March25LutTests/Plots/SingleTauEffNewCalibNewLUT'
 name = 'recoPt_'+str(l1PtValLow)+'l1PtLow_'+str(l1PtValLow)+'l1PtHigh_'+str(l1PtValHigh)+'etaLow_'+str(etaLow)+'etaHigh_'+str(etaHigh)
 var2D = 'dREgTau'
 do2DRes = False
@@ -56,7 +56,7 @@ do2DRes = False
 #eff_rlx_veto_ntuple_str = "tau_emul_effJan27RlxTauVetoMatchFix.root"
 #eff_iso_ntuple_str = "tau_emul_effJan27IsoTauVetoMatchFix.root"
 #eff_ntuple_str = "tau_emul_effJan28RlxNoTauVetoThreshFix.root"
-eff_ntuple_str = "March25LutTests/tau_emul_effMarch27OldCalibOldLUTIsoPoint1.root"
+eff_ntuple_str = "March25LutTests/tau_emul_effMarch27NewCalibNewLUTIsoPoint1.root"
 eff_rlx_veto_ntuple_str = "tau_emul_effJan28RlxTauVetoThreshFix.root"
 #eff_iso_ntuple_str = "tau_emul_effJan28IsoTauVetoThreshFix.root"
 eff_iso_ntuple_str="tau_emul_effJan28IsoTauVetoThreshFix0Point1Iso.root"
@@ -150,8 +150,8 @@ def make_resolution(ntuple,ntuple_iso,binning,recoPtCut,l1PtCutLow,l1PtCutHigh,e
  	rlxResGauss.Scale(1/rlxResGauss.Integral())
  	isoResGauss.Scale(1/isoResGauss.Integral())
 
- rlxResFit = ROOT.TF1("asdf","gaus",-1.0,1.0)
- isoResFit = ROOT.TF1("asdf","gaus",-1.0,1.0)
+ rlxResFit = ROOT.TF1("asdf","gaus",-0.4,0.4)
+ isoResFit = ROOT.TF1("asdf","gaus",-0.4,0.4)
 
  rlxResGauss.Fit(rlxResFit,"R")
  isoResGauss.Fit(isoResFit,"R")
