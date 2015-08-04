@@ -6,6 +6,7 @@ from sys import argv, stdout, stderr
 import ROOT
 import sys
 import array
+import math
 
 ##################
 # Set Parameters #
@@ -20,8 +21,8 @@ etaLow=argv[4]
 etaHigh=argv[5]
 l1PtLow=argv[6]
 l1PtHigh=argv[7]
-L1_CALIB_FACTOR = argv[8]
-saveWhere = saveDir+'Plots/Res_'+saveStr+'eta_'+etaLow+'_'+etaHigh+'_l1pt_'+l1PtLow+'_'+l1PtHigh
+L1_CALIB_FACTOR = float(argv[8])
+saveWhere = saveDir+'Plots/Res_'+saveStr+'eta_'+etaLow+'_'+etaHigh+'_l1pt_'+l1PtLow+'_'+l1PtHigh+'_CalibFactor_'+str(L1_CALIB_FACTOR)
 
 ########
 # File #
@@ -57,7 +58,6 @@ tex.SetTextSize(0.07)
 tex.SetTextAlign(11)
 tex.SetNDC(True)
 
-variable = "pt[1]"
 canvas = ROOT.TCanvas("asdf", "adsf", 800, 800)
 canvas.SetGrid()
 
@@ -102,6 +102,7 @@ def make_plot(tree, variable, selection, binning, title,leg,color,marker,calFact
 
 def compare_resolution(
   variable,
+  variableNoCalib,
   binning,
   ntuple=None,
   ntuple_iso=None,
@@ -119,7 +120,7 @@ def compare_resolution(
   print "cut_L1" 
   print ntuple
    
-  frame = ROOT.TH1F('frame','frame',25,-1,1)
+  frame = ROOT.TH1F('frame','frame',*binning)
   frame.SetTitle('Resolution')
   frame.SetMaximum(0.3)
 
@@ -129,7 +130,6 @@ def compare_resolution(
   legend.SetTextSize(0.033)
   legend.SetFillColor(0)
   legend.SetBorderSize(0)
-
   res,resFit,resMean= make_plot(
    ntuple,variable,
    cut_L1,
@@ -141,16 +141,16 @@ def compare_resolution(
    binning,'Data: Iso',legend,ROOT.EColor.kBlue,20
   )
   res_mc,res_mcFit,res_mcMean= make_plot(
-   ntuple_mc,variable,
+   ntuple_mc,variableNoCalib,
    cut_L1,
    binning,'MC: Rlx',legend,ROOT.EColor.kGreen+3,24
   )
   res_mc_iso,res_mc_isoFit,res_mc_isoMean= make_plot(
-   ntuple_mc_iso,variable,
+   ntuple_mc_iso,variableNoCalib,
    cut_L1,
    binning,'MC: Iso',legend,ROOT.EColor.kBlue,24
   )
-
+  print "resMean: " + str(resMean)
   frame.Draw("")
   #frame.SetMaximum(0.3)
 
@@ -174,19 +174,22 @@ def compare_resolution(
   strRlxMCMean = "Rlx MC Fit Mean: %.2f"%(res_mcMean)
   strIsoMCMean = "Iso MC Fit Mean: %.2f"%(res_mc_isoMean)
   strL1PtRange = str(l1PtLow)+" < L1Pt < "+str(l1PtHigh)
-  strEtaRange = "       |#eta|<2.5"
+  strEtaRange = str(etaLow)+" < #eta < "+str(etaHigh)
+  strCalib = "L1 Calib Factor: " + str(L1_CALIB_FACTOR)
   latex.DrawLatex(0.4,0.8,strRlxMean)
   latex.DrawLatex(0.4,0.77,strIsoMean)
   latex.DrawLatex(0.4,0.74,strRlxMCMean)
   latex.DrawLatex(0.4,0.71,strIsoMCMean)
   latex.DrawLatex(0.4,0.68,strL1PtRange)
   latex.DrawLatex(0.4,0.65,strEtaRange)
+  latex.DrawLatex(0.4,0.63,strCalib)
   
   
  
   legend.Draw("sames")
  
   canvas.SaveAs(saveWhere+saveStr+'.png')
+  return resMean
 ######################################################################
 ##### EFFICIENCY #####################################################
 ######################################################################
@@ -199,27 +202,33 @@ def compare_resolution(
 # Efficiency Plots #
 ####################
 #binPt = [10,40,80] #l120
-xBins = array.array('d',[20,25,30,35,40,45,50,55,60,80,100,130,200])
-binPt = [20,0,100]
-binVert=[10,0,35]
-binJetPt=[40,0,70]
-binEta = [10,-2.5,2.5]
-bin2DPt = [10,0,100,10,0,100]
 binRes = [25,-1,1]
 
-resVar = '(pt[0]-' + str(L1_CALIB_FACTOR)+'*L1Matchedpt[0])/pt[0]'
+resVarCalib = '(pt[0]-' + str(L1_CALIB_FACTOR)+'*L1Matchedpt[0])/pt[0]'
+resVarNoCalib = '(pt[0]-L1Matchedpt[0])/pt[0]'
 resRecoPtCut = '(pt[0] >= '+str(recoPtVal)+')'
 resL1PtCut = '(L1Matchedpt[0] >= '+str(l1PtLow)+'&&L1Matchedpt[0]< '+str(l1PtHigh)+')'
 extraCutStr = '&&eta[0]>'+str(-2.5)+'&&eta[0]<'+str(2.5)+'&&L1Matchedeta[0]>'+str(etaLow)+'&&L1Matchedeta[0]<'+str(etaHigh)
-compare_resolution(
-  resVar,
-  binRes,
-  res_ntuple,
-  res_iso_ntuple,
-  res_mc_ntuple,
-  res_mc_iso_ntuple,
-  resRecoPtCut,
-  resL1PtCut,
-  l1PtCutOld='(L1Matchedpt[0] >= 40)&&(L1Matchedpt[1]>= 40)',
-  extraCut=extraCutStr,
-)
+res_Mean=2.0
+#print str(abs(res_Mean-1.0))
+while (abs(res_Mean)>0.01):
+  print "making plot"
+  res_Mean=compare_resolution(
+    resVarCalib,
+    resVarNoCalib,
+    binRes,
+    res_ntuple,
+    res_iso_ntuple,
+    res_mc_ntuple,
+    res_mc_iso_ntuple,
+    resRecoPtCut,
+    resL1PtCut,
+    l1PtCutOld='(L1Matchedpt[0] >= 40)&&(L1Matchedpt[1]>= 40)',
+    extraCut=extraCutStr,
+  )
+  L1_CALIB_FACTOR = L1_CALIB_FACTOR*(1+res_Mean)
+  print "resMean: " + str(res_Mean)
+  print "new calib factor: " + str(L1_CALIB_FACTOR)
+  resVarCalib = '(pt[0]-' + str(L1_CALIB_FACTOR)+'*L1Matchedpt[0])/pt[0]'
+  saveWhere = saveDir+'Plots/Res_'+saveStr+'eta_'+etaLow+'_'+etaHigh+'_l1pt_'+l1PtLow+'_'+l1PtHigh+'_CalibFactor_'+str(L1_CALIB_FACTOR)
+
