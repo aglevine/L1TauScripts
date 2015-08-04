@@ -20,8 +20,7 @@ etaLow=argv[4]
 etaHigh=argv[5]
 l1PtLow=argv[6]
 l1PtHigh=argv[7]
-L1_CALIB_FACTOR = 1.0
-L1G_CALIB_FACTOR = 1.0
+L1_CALIB_FACTOR = argv[8]
 saveWhere = saveDir+'Plots/Res_'+saveStr+'eta_'+etaLow+'_'+etaHigh+'_l1pt_'+l1PtLow+'_'+l1PtHigh
 
 ########
@@ -119,7 +118,8 @@ def compare_resolution(
   cut_L1=cutD_rlx+'&&'+l1PtCut+'&& L1matches[0]>-1'
   print "cut_L1" 
   print ntuple
-  
+   
+  frame = ROOT.TH1F('frame','frame',25,-1,1)
   frame.SetTitle('Resolution')
   frame.SetMaximum(0.3)
 
@@ -151,12 +151,10 @@ def compare_resolution(
    binning,'MC: Iso',legend,ROOT.EColor.kBlue,24
   )
 
-  frame = ROOT.TH1F('frame','frame',25,-1,1)
   frame.Draw("")
-  frame.SetTitle('Resolution')
-  frame.SetMaximum(0.3)
+  #frame.SetMaximum(0.3)
 
-  frame.GetXaxis().SetTitle("(recoPt-L1Pt)/recoPt")
+  #frame.GetXaxis().SetTitle("(recoPt-L1Pt)/recoPt")
   
   
   res.Draw("ep")
@@ -175,7 +173,7 @@ def compare_resolution(
   strIsoMean = "Iso Data Fit Mean: %.2f"%(res_isoMean)
   strRlxMCMean = "Rlx MC Fit Mean: %.2f"%(res_mcMean)
   strIsoMCMean = "Iso MC Fit Mean: %.2f"%(res_mc_isoMean)
-  strL1PtRange = str(l1PtLow)+" L1Pt < "+str(l1PtHigh)
+  strL1PtRange = str(l1PtLow)+" < L1Pt < "+str(l1PtHigh)
   strEtaRange = "       |#eta|<2.5"
   latex.DrawLatex(0.4,0.8,strRlxMean)
   latex.DrawLatex(0.4,0.77,strIsoMean)
@@ -209,7 +207,7 @@ binEta = [10,-2.5,2.5]
 bin2DPt = [10,0,100,10,0,100]
 binRes = [25,-1,1]
 
-resVar = '(pt[0]-L1Matchedpt[0])/pt[0]'
+resVar = '(pt[0]-' + str(L1_CALIB_FACTOR)+'*L1Matchedpt[0])/pt[0]'
 resRecoPtCut = '(pt[0] >= '+str(recoPtVal)+')'
 resL1PtCut = '(L1Matchedpt[0] >= '+str(l1PtLow)+'&&L1Matchedpt[0]< '+str(l1PtHigh)+')'
 extraCutStr = '&&eta[0]>'+str(-2.5)+'&&eta[0]<'+str(2.5)+'&&L1Matchedeta[0]>'+str(etaLow)+'&&L1Matchedeta[0]<'+str(etaHigh)
