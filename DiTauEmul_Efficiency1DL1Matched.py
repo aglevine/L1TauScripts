@@ -17,6 +17,7 @@ doOldCmp=False
 l1PtVal=float(argv[1])
 eff_ntuple_str=argv[2]
 saveStr=argv[3]
+doDiTau=True
 do2BiniEtaCut=False
 Longxaxis=False
 if (do2BiniEtaCut):
@@ -34,7 +35,9 @@ ZEROBIAS_RATE=11246.0*2590.0 #frequency X bunches
 #saveWhere = 'EmulatorTestingNov/DiTau1DEffiLauraNewCalibThreshPoint15Iso'
 #saveWhere = 'March25LutTests/Plots/OldCalibOldLutPoint1Iso_'
 #saveDir = 'March25LutTests/Plots/'
-saveDir = 'RCTV2CalibNtuples_FullStatsApril28/Plots/'
+#saveDir = 'RCTV2CalibNtuples_FullStatsApril28/Plots/'
+#saveDir = 'HLT_July8/Plots/'
+saveDir = 'EffiData/Plots/'
 #saveDir = 'RCTV2CalibNtuples_LUTFileTest/Plots/'
 saveWhere = saveDir+saveStr
 
@@ -139,7 +142,9 @@ def make_plot(tree, variable, selection, binning, xaxis='', title='',calFactor=1
  #output_histo.Add(output_histoMin1)
  if (variable == "pt[1]"):
  	output_histo.GetXaxis().SetTitle("Min(P_{T}1, P_{T}2)")
+ print tree
  ROOT.gDirectory.Clear()
+ print tree
  output_histo.Rebin(10,"output_histoRebinned",xBins)
  output_histoRebinned = ROOT.gDirectory.Get("output_histoRebinned").Clone()
 
@@ -148,6 +153,7 @@ def make_plot(tree, variable, selection, binning, xaxis='', title='',calFactor=1
  for i in range(1,13):
  	print "printing" + str(i)
  	print output_histoRebinned.GetBinContent(i)
+	
  return output_histoRebinned
 
 
@@ -190,6 +196,7 @@ def effi_histo(ntuple,variable,cut,binning,denom,title,leg,color,marker):
  tex.SetTextAlign(31)
  for i in range (1,efiHist.GetNbinsX()):
 	print efiHist.GetBinContent(i)
+ print "slope: " + str(((efiHist.GetBinContent(4)+efiHist.GetBinContent(5)+efiHist.GetBinContent(6))/15))
  return efi
 
 def compare_efficiencies(
@@ -235,7 +242,10 @@ Returns a (L1, L1G) tuple of TGraphAsymmErrors
  frame.GetYaxis().SetTitle('Efficiency')
  frame.SetMaximum(1.1)
  frame.GetYaxis().SetTitle("Efficiency")
- tex.DrawLatex(0.1,0.91,'DiTau Efficiency')
+ if (doDiTau):
+ 	tex.DrawLatex(0.1,0.91,'DiTau Efficiency')
+ else:
+	tex.DrawLatex(0.1,0.91,'Single Tau Efficiency')
  tex.SetTextSize(0.03)
  tex.SetTextAlign(31)
  tex.DrawLatex(0.9,0.91,'CMS Preliminary')
@@ -265,7 +275,10 @@ Returns a (L1, L1G) tuple of TGraphAsymmErrors
  if variable=='nPVs': info+=str(recoPtVal)
  
 # Current Relaxed
- cut_L1_rlx=cutD_rlx+'&&'+l1PtCut+'&& L1matches[0]>-1&&L1matches[1]>-1'
+ if (doDiTau):
+ 	cut_L1_rlx=cutD_rlx+'&&'+l1PtCut+'&& L1matches[0]>-1&&L1matches[1]>-1'
+ else:
+	cut_L1_rlx=cutD_rlx+'&&'+l1PtCut+'&& L1matches[0]>-1'
  cut_L1_rlxOld=cutD_rlx+'&&'+l1PtCutOld+'&& L1matches[0]>-1&&L1matches[1]>-1'
  _L1_rlx=effi_histo(ntuple,variable,cut_L1_rlx,binning,denom_rlx,
  'L1: Rlx',legend, ROOT.EColor.kGreen+3,20)
@@ -294,8 +307,8 @@ Returns a (L1, L1G) tuple of TGraphAsymmErrors
  L1RlxFit.SetLineColor(ROOT.EColor.kGreen+3)
  L1IsoFit.SetLineColor(ROOT.EColor.kBlue)
  
- L1RlxFit.Draw("lsames")
- L1IsoFit.Draw("lsames")
+ L1RlxFit.Draw("sames")
+ L1IsoFit.Draw("sames")
  
  print "l1 iso done"
  #_L1_rlx_NoDoubling=effi_histo(ntuple_NoDoubling,variable,cut_L1_rlx,binning,denom_NoDoubling_rlx,
@@ -352,13 +365,27 @@ bin2DPt = [10,0,100,10,0,100]
 # drawL1Rlx_=False
 # legExtra='',
 # setLOG=False
-if (do2BiniEtaCut):
-	extraCutStr='&&eta[0]>-1.9&&eta[0]<1.9&&eta[1]>-1.9&&eta[1]<1.9&&L1Matchedeta[1]<1.9 &&L1Matchedeta[0]>-1.9&&L1Matchedeta[0]<1.9&&L1Matchedeta[1]>-1.9&&L1Matchedeta[1]<1.9'
-else:
-	extraCutStr='&&eta[0]>-2.5&&eta[0]<2.5&&eta[1]>-2.5&&eta[1]<2.5&&L1Matchedeta[1]<2.5 &&L1Matchedeta[0]>-2.5&&L1Matchedeta[0]<2.5&&L1Matchedeta[1]>-2.5&&L1Matchedeta[1]<2.5'
+#if (do2BiniEtaCut):
+#	extraCutStr='&&eta[0]>-1.9&&eta[0]<1.9&&eta[1]>-1.9&&eta[1]<1.9&&L1Matchedeta[1]<1.9 &&L1Matchedeta[0]>-1.9&&L1Matchedeta[0]<1.9&&L1Matchedeta[1]>-1.9&&L1Matchedeta[1]<1.9'
+#else:
+#	extraCutStr='&&eta[0]>-2.5&&eta[0]<2.5&&eta[1]>-2.5&&eta[1]<2.5&&L1Matchedeta[1]<2.5 &&L1Matchedeta[0]>-2.5&&L1Matchedeta[0]<2.5&&L1Matchedeta[1]>-2.5&&L1Matchedeta[1]<2.5'
 
+if doDiTau:
+  effVar = 'pt[1]'
+  effRecoPtCut = '(pt[0] >= '+str(recoPtVal)+')&&(pt[1] >= '+str(recoPtVal)+')'
+  effL1PtCut = '(L1Matchedpt[0] >= '+str(l1PtVal)+')&&(L1Matchedpt[1]>= '+str(l1PtVal)+'&&L1Matchedeta[0]>-2.5&&L1Matchedeta[0]<2.5)'
+  #extraCutStr = '&&eta[0]>-2.5&&eta[0]<2.5&&eta[1]>-2.5&&eta[1]<2.5&&L1Matchedeta[1]<2.5 &&L1Matchedeta[0]>-2.5&&L1Matchedeta[0]<2.5&&L1Matchedeta[1]>-2.5&&L1Matchedeta[1]<2.5'
+  extraCutStr = '&&eta[0]>-2.5&&eta[0]<2.5&&eta[1]>-2.5&&eta[1]<2.5'
+  saveStr=saveStr+'DiTau_'
+else:
+  effVar = 'pt[0]'
+  effRecoPtCut = '(pt[0] >= '+str(recoPtVal)+')'
+  effL1PtCut = '(L1Matchedpt[0] >= '+str(l1PtVal)+')'
+  extraCutStr = '&&eta[0]>-2.5&&eta[0]<2.5&&L1Matchedeta[0]>-2.5&&L1Matchedeta[0]<2.5'
+  saveStr=saveStr+'SingleTau_'
+ 
 compare_efficiencies(
- "pt[1]",
+ effVar,
  binPt,
  eff_ntuple,
  eff_iso_ntuple,
@@ -367,9 +394,9 @@ compare_efficiencies(
  eff_rlx_veto_ntuple,
  eff_ntuple_NoDoubling,
  eff_iso_ntuple_NoDoubling,
- recoPtCut = '(pt[0] >= '+str(recoPtVal)+')&&(pt[1] >= '+str(recoPtVal)+')',
+ effRecoPtCut,
  #recoPtCut='1',
- l1PtCut='(L1Matchedpt[0] >= '+str(l1PtVal)+')&&(L1Matchedpt[1]>= '+str(l1PtVal)+')',
+ effL1PtCut,
  l1PtCutOld='(L1Matchedpt[0] >= 40)&&(L1Matchedpt[1]>= 40)',
  #l1PtCut='((L1Matchedpt[0] >='+ str(32/1.185)+'&&abs(L1Matchedeta[0])<0.9)||(L1Matchedpt[0] >='+ str(32/1.153)+'&&abs(L1Matchedeta[0])<1.4&&abs(L1Matchedeta[0])>=0.9)||(L1Matchedpt[0] >='+ str(32/1.081)+'&&abs(L1Matchedeta[0])<2.5&&abs(L1Matchedeta[0])>=1.4))&&((L1Matchedpt[1] >='+ str(32/1.185)+'&&abs(L1Matchedeta[1])<0.9)||(L1Matchedpt[1] >='+ str(36/1.153)+'&&abs(L1Matchedeta[1])<1.4&&abs(L1Matchedeta[1])>=0.9)||(L1Matchedpt[1] >='+ str(32/1.081)+'&&abs(L1Matchedeta[1])<2.5&&abs(L1Matchedeta[1])>=1.4))',
  #l1PtCut='((L1Matchedpt[0] >='+ str(36/1.131)+'&&abs(L1Matchedeta[0])<0.9)||(L1Matchedpt[0] >='+ str(36/1.061)+'&&abs(L1Matchedeta[0])<1.4&&abs(L1Matchedeta[0])>=0.9)||(L1Matchedpt[0] >='+ str(36/1.050)+'&&abs(L1Matchedeta[0])<2.5&&abs(L1Matchedeta[0])>=1.4))&&((L1Matchedpt[1] >='+ str(36/1.131)+'&&abs(L1Matchedeta[1])<0.9)||(L1Matchedpt[1] >='+ str(36/1.061)+'&&abs(L1Matchedeta[1])<1.4&&abs(L1Matchedeta[1])>=0.9)||(L1Matchedpt[1] >='+ str(36/1.050)+'&&abs(L1Matchedeta[1])<2.5&&abs(L1Matchedeta[1])>=1.4))',

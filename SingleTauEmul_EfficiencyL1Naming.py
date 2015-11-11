@@ -33,7 +33,8 @@ L1CalibFactor = float(argv[10])
 ZEROBIAS_RATE=5623.0*2590.0 #frequency X bunches
 #saveWhere = 'EmulatorTestingNov/BinnedTausEOBIB/ThirdPassSingleTauEffMatchFixThreshFixJan280Point1Iso'
 #saveWhere = 'EmulatorTestingNov/BinnedTausEOBIB/ResL1OnBottom'
-saveWhere = 'March25LutTests/Plots/SingleTauEffNewCalibNewLUT'
+#saveWhere = 'March25LutTests/Plots/SingleTauEffNewCalibNewLUT'
+saveWhere = 'HLT_Testing_June3/ResCalibOff.root'
 name = 'recoPt_'+str(l1PtValLow)+'l1PtLow_'+str(l1PtValLow)+'l1PtHigh_'+str(l1PtValHigh)+'etaLow_'+str(etaLow)+'etaHigh_'+str(etaHigh)
 var2D = 'dREgTau'
 do2DRes = False
@@ -56,7 +57,8 @@ do2DRes = False
 #eff_rlx_veto_ntuple_str = "tau_emul_effJan27RlxTauVetoMatchFix.root"
 #eff_iso_ntuple_str = "tau_emul_effJan27IsoTauVetoMatchFix.root"
 #eff_ntuple_str = "tau_emul_effJan28RlxNoTauVetoThreshFix.root"
-eff_ntuple_str = "March25LutTests/tau_emul_effMarch27NewCalibNewLUTIsoPoint1.root"
+#eff_ntuple_str = "March25LutTests/tau_emul_effMarch27NewCalibNewLUTIsoPoint1.root"
+eff_ntuple_str = "HLT_Testing_June3/tau_HLT_Eff_CalibOffTest.root"
 eff_rlx_veto_ntuple_str = "tau_emul_effJan28RlxTauVetoThreshFix.root"
 #eff_iso_ntuple_str = "tau_emul_effJan28IsoTauVetoThreshFix.root"
 eff_iso_ntuple_str="tau_emul_effJan28IsoTauVetoThreshFix0Point1Iso.root"
@@ -484,7 +486,6 @@ compare_efficiencies(
  l1PtCut='(L1Matchedpt[0] >='+ str(l1PtVal)+')',
  extraCut='&&eta[0]>-2.5&&eta[0]<2.5&&L1Matchedeta[0]>'+str(etaLow)+'&&L1Matchedeta[0]<'+str(etaHigh),
 )
-'''
 compare_efficiencies(
  #'pt[0]:pt[1]',
  "pt[0]",
@@ -504,7 +505,7 @@ compare_efficiencies(
  l1PtCut = '(L1Matchedpt[0] >= '+str(l1PtVal) +')',
  extraCut='&&eta[0]>-2.5&&eta[0]<2.5&&L1Matchedeta[0]>-2.5&&L1Matchedeta[0]<2.5',
 )
-
+'''
 make_resolution(eff_ntuple,
                 eff_iso_ntuple,
                 binRes,
